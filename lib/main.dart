@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:contacts_service/contacts_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import 'add_prduct.dart';
+import 'list_prducts.dart';
+import 'send_load_list.dart';
+import 'product.dart';
 
 void main() {
   runApp(MyApp());
@@ -13,6 +18,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Market List',
+      localizationsDelegates: [
+        AppLocalizations.delegate, // Add this line
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('en', ''), // English, no country code
+        const Locale('es', ''), // Spanish, no country code
+      ],
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -25,13 +40,14 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Market List'),
+      debugShowCheckedModeBanner: false,
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -42,76 +58,55 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-Future<List<Contact>> getContacts() async {
-  List<Contact> someContacts = <Contact>[];
-  var contacts = await ContactsService.getContacts(withThumbnails: false);
-
-  var i = 0;
-  for (var contact in contacts) {
-    var aContact = new Contact();
-    aContact.displayName = contact.displayName;
-    for (var phone in contact.phones) {
-      var phoneFormatted;
-      if (phone.value.contains("+54"))
-        phoneFormatted = phone.value;
-      else
-        phoneFormatted = '+549' + phone.value;
-      aContact.phone = phoneFormatted;
-    }
-    someContacts.insert(i, aContact);
-    i++;
-  }
-
-  return someContacts;
-}
-
-void launchURL(phone, text) async {
-  var url = 'https://api.whatsapp.com/send?phone=${phone}&text=${text}';
-  await canLaunch(url) ? await launch(url) : throw 'Could not launch $url';
-}
-
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Product> someProducts = <Product>[];
+  List<Product> _someProducts = <Product>[];
 
-  TextEditingController nameController = TextEditingController();
+  TextEditingController _newProductController = TextEditingController();
 
-  TextEditingController listController = TextEditingController();
+  TextEditingController _listController = TextEditingController();
 
-  void addItemToList() {
+  void _addItemToList() {
     setState(() {
       var aProduct = new Product();
-      aProduct.name = nameController.text;
+      aProduct.name = _newProductController.text;
       aProduct.isSelected = false;
-      someProducts.insert(0, aProduct);
-      nameController.text = '';
+      _someProducts.insert(0, aProduct);
+      _newProductController.text = '';
     });
   }
 
-  void clearList() {
+  void _clearList() {
     setState(() {
-      someProducts.clear();
+      _someProducts.clear();
     });
   }
 
-  void importList() {
+  void _importList() {
     setState(() {
-      someProducts.clear();
+      _someProducts.clear();
 
-      var products = jsonDecode(listController.text);
+      var products = jsonDecode(_listController.text);
       for (var product in products) {
         var aProduct = new Product();
         aProduct.name = product['name'];
         aProduct.isSelected = false;
-        someProducts.insert(0, aProduct);
+        _someProducts.insert(0, aProduct);
       }
-      nameController.text = '';
-      listController.text = '';
+      _newProductController.text = '';
+      _listController.text = '';
+    });
+  }
+
+  void _selectItem(index) {
+    setState(() {
+      if (_someProducts[index].isSelected)
+        _someProducts[index].isSelected = false;
+      else
+        _someProducts[index].isSelected = true;
     });
   }
 
@@ -119,182 +114,20 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Market List'),
+          title: Text(AppLocalizations.of(context).marketList),
         ),
-        body: Column(children: <Widget>[
-          Padding(
+        body: Padding(
             padding: EdgeInsets.all(20),
-            child: TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Product name',
-              ),
-            ),
-          ),
-          Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: ElevatedButton(
-                    child: Text('Add'),
-                    onPressed: () {
-                      addItemToList();
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: ElevatedButton(
-                    child: Text('Clear List'),
-                    onPressed: () {
-                      clearList();
-                    },
-                  ),
-                ),
-              ]),
-          Expanded(
-              child: ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: someProducts.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return InkWell(
-                        onTap: () {
-                          setState(() {
-                            if (someProducts[index].isSelected)
-                              someProducts[index].isSelected = false;
-                            else
-                              someProducts[index].isSelected = true;
-                          });
-                        },
-                        child: Container(
-                          height: 50,
-                          margin: EdgeInsets.all(2),
-                          color: someProducts[index].isSelected
-                              ? Colors.red
-                              : Colors.blue,
-                          child: Center(
-                              child: Text(
-                            '${someProducts[index].name}',
-                            style: TextStyle(fontSize: 20),
-                          )),
-                        ));
-                  })),
-          Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: ElevatedButton(
-                    child: Text('Send'),
-                    onPressed: () async {
-                      var contacts = await getContacts();
-                      showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                                title: Text("Select a contact"),
-                                content: Container(
-                                    height: 500.0,
-                                    width: 300.0,
-                                    child: ListView.builder(
-                                        shrinkWrap: true,
-                                        padding: const EdgeInsets.all(2),
-                                        itemCount: contacts.length,
-                                        itemBuilder:
-                                            (BuildContext context, int index) {
-                                          return InkWell(
-                                              onTap: () {
-                                                setState(() {
-                                                  var jsonProcuts = '''[''';
-                                                  var notSelected = false;
-                                                  for (var i = 0;
-                                                      i < someProducts.length;
-                                                      i++) {
-                                                    jsonProcuts +=
-                                                        '{"name": "${someProducts[i].name}", "isSelected": $notSelected},';
-                                                  }
-                                                  jsonProcuts =
-                                                      jsonProcuts.substring(
-                                                          0,
-                                                          jsonProcuts.length -
-                                                              1);
-                                                  jsonProcuts += ''']''';
-
-                                                  launchURL(
-                                                      contacts[index].phone,
-                                                      jsonProcuts);
-                                                });
-                                              },
-                                              child: Container(
-                                                height: 40,
-                                                margin: EdgeInsets.all(10),
-                                                child: Center(
-                                                    child: Text(
-                                                  '${contacts[index].displayName}',
-                                                  style:
-                                                      TextStyle(fontSize: 18),
-                                                )),
-                                              ));
-                                        })),
-                                actions: <Widget>[
-                                  ElevatedButton(
-                                    child: Text('Volver'),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  )
-                                ],
-                              ));
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: ElevatedButton(
-                      child: Text('Import List'),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: Text("Insert list"),
-                            content: Container(
-                              height: 500.0,
-                              width: 300.0,
-                              child: TextField(
-                                controller: listController,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Products List',
-                                ),
-                              ),
-                            ),
-                            actions: <Widget>[
-                              ElevatedButton(
-                                child: Text('Guardar'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  importList();
-                                },
-                              )
-                            ],
-                          ),
-                        );
-                      }),
-                ),
-              ]),
-        ]));
+            child: Column(children: <Widget>[
+              AddProduct(
+                  addItem: _addItemToList,
+                  controller: _newProductController,
+                  clearList: _clearList),
+              ListProducts(products: _someProducts, selectItem: _selectItem),
+              SendLoadList(
+                  products: _someProducts,
+                  controller: _listController,
+                  importList: _importList),
+            ])));
   }
-}
-
-class Product {
-  String name;
-  bool isSelected;
-}
-
-class Contact {
-  String displayName;
-  String phone;
 }
