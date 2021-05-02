@@ -1,0 +1,13 @@
+{
+    "marketList": "Market List",
+    "importList": "Import List",
+    "insertList": "Insert List",
+    "clearList": "Clear List",
+    "productsList": "Products List",
+    "save": "Save",
+    "send": "Send",
+    "back": "Back",
+    "add": "Add",
+    "productName": "Product Name",
+    "selectContact": "Select a Contact"
+}
