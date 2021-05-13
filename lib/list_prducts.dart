@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import 'product.dart';
 
 class ListProducts extends StatelessWidget {
-  ListProducts({Key key, this.products, this.selectItem}) : super(key: key);
+  ListProducts({Key key, this.products, this.selectItem, this.removeItem})
+      : super(key: key);
 
   final List<Product> products;
   final ValueChanged<int> selectItem;
+  final ValueChanged<int> removeItem;
 
   Widget build(BuildContext context) {
     return Expanded(
         child: ListView.builder(
-            padding: const EdgeInsets.all(8),
             itemCount: products.length,
             itemBuilder: (BuildContext context, int index) {
               return InkWell(
@@ -22,11 +25,22 @@ class ListProducts extends StatelessWidget {
                     margin: EdgeInsets.all(2),
                     color:
                         products[index].isSelected ? Colors.red : Colors.blue,
-                    child: Center(
-                        child: Text(
-                      '${products[index].name}',
-                      style: TextStyle(fontSize: 20),
-                    )),
+                    child: Row(children: <Widget>[
+                      Expanded(
+                          flex: 8,
+                          child: Center(
+                              child: Text(
+                            '${products[index].name}',
+                            style: TextStyle(fontSize: 20),
+                          ))),
+                      Expanded(
+                          flex: 2,
+                          child: IconButton(
+                              icon: FaIcon(FontAwesomeIcons.times),
+                              onPressed: () {
+                                removeItem(index);
+                              }))
+                    ]),
                   ));
             }));
   }
