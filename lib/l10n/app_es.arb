@@ -2,12 +2,10 @@
     "marketList": "Lista del Mercado",
     "importList": "Importar Lista",
     "insertList": "Insertar Lista",
-    "clearList": "Borrar Lista",
     "productsList": "Lista de Productos",
     "save": "Guardar",
     "send": "Enviar",
     "back": "Volver",
-    "add": "Agregar",
     "productName": "Nombre del Producto",
     "selectContact": "Seleccionar un Contacto"
 }
