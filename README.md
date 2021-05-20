@@ -6,6 +6,6 @@ It's made in [Flutter](https://flutter.dev/).
 
 ## Getting Started
 
-In *app/outputs/apk/release/* you can find the APK files to install in your smartphone with Android
+In *apk/* you can find the latest version APK files to install in your smartphone with Android
 
 (In in most cases you should choose *app-arm64-v8a-release.apk*)
