@@ -76,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
       for (var product in products) {
         var aProduct = new Product();
         aProduct.name = product['name'];
-        aProduct.isSelected = false;
+        aProduct.isSelected = product['isSelected'];
         _someProducts.insert(0, aProduct);
       }
       _newProductController.text = '';

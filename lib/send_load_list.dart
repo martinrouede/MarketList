@@ -19,6 +19,18 @@ class SendLoadList extends StatelessWidget {
     await canLaunch(url) ? await launch(url) : throw 'Could not launch $url';
   }
 
+  String buildJsonProducts() {
+    var jsonProducts = '''[''';
+    for (var i = 0; i < products.length; i++) {
+      jsonProducts +=
+          '{"name": "${products[i].name}", "isSelected": ${products[i].isSelected}},';
+    }
+    jsonProducts = jsonProducts.substring(0, jsonProducts.length - 1);
+    jsonProducts += ''']''';
+
+    return jsonProducts;
+  }
+
   Future<List<MyContact>> getContacts() async {
     List<MyContact> someContacts = <MyContact>[];
     var contacts = await ContactsService.getContacts(withThumbnails: false);
@@ -61,7 +73,7 @@ class SendLoadList extends StatelessWidget {
                           content: Container(
                               height: 500.0,
                               width: 300.0,
-                              child: ListView.builder(
+                              child: ListView.separated(
                                   shrinkWrap: true,
                                   padding: const EdgeInsets.all(2),
                                   itemCount: contacts.length,
@@ -69,20 +81,10 @@ class SendLoadList extends StatelessWidget {
                                       (BuildContext context, int index) {
                                     return InkWell(
                                         onTap: () {
-                                          var jsonProcuts = '''[''';
-                                          var notSelected = false;
-                                          for (var i = 0;
-                                              i < products.length;
-                                              i++) {
-                                            jsonProcuts +=
-                                                '{"name": "${products[i].name}", "isSelected": $notSelected},';
-                                          }
-                                          jsonProcuts = jsonProcuts.substring(
-                                              0, jsonProcuts.length - 1);
-                                          jsonProcuts += ''']''';
-
+                                          var jsonProducts =
+                                              buildJsonProducts();
                                           launchURL(contacts[index].phone,
-                                              jsonProcuts);
+                                              jsonProducts);
                                         },
                                         child: Container(
                                           height: 40,
@@ -93,6 +95,9 @@ class SendLoadList extends StatelessWidget {
                                             style: TextStyle(fontSize: 18),
                                           )),
                                         ));
+                                  },
+                                  separatorBuilder: (context, index) {
+                                    return Divider();
                                   })),
                           actions: <Widget>[
                             ElevatedButton(
@@ -119,6 +124,9 @@ class SendLoadList extends StatelessWidget {
                         height: 500.0,
                         width: 300.0,
                         child: TextField(
+                          keyboardType: TextInputType.multiline,
+                          minLines: 1,
+                          maxLines: 20,
                           controller: controller,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(),
@@ -132,6 +140,7 @@ class SendLoadList extends StatelessWidget {
                           child: Text(AppLocalizations.of(context).back),
                           onPressed: () {
                             Navigator.of(context).pop();
+                            controller.text = '';
                           },
                         ),
                         ElevatedButton(
